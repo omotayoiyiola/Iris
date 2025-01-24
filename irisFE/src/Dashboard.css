@@ -20,9 +20,9 @@ body {
   width: 100%;
   padding: 20px;
   display: flex;
-  justify-content: space-between; /* Aligns items at the opposite ends */
+  justify-content: center; /* Aligns items at the opposite ends */
   align-items: center;
-  font-size: 20px;
+  font-size: 40px;
   position: fixed;
   top: 0;
   left: 0;
@@ -44,6 +44,24 @@ body {
   flex-grow: 1; /* Allows the message to take remaining space on the left */
 }
 
+/* Styling for the welcome message */
+.welcome-message {
+  font-size: 20px;
+  color: white; /* Default color for the whole message */
+}
+
+/* Styling for user name */
+.user-name {
+  font-weight: bold; /* Makes the name bold */
+  color: #f0f0f0; /* Lighter color for the name */
+}
+
+/* Styling for the role (variety) */
+.user-role {
+  font-style: italic; /* Italicize the role */
+  color: #ffcc00; /* Different color for the role (yellow) */
+}
+
 /* Styling for logout button */
 .logout-button {
   padding: 10px 15px;
@@ -53,6 +71,7 @@ body {
   cursor: pointer;
   margin-right: 20px;
   border-radius: 5px;
+  width: 100px;
   font-size: 16px; /* Adjust the font size */
 }
 

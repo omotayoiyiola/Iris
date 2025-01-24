@@ -81,7 +81,8 @@ function Dashboard() {
     <div className="dashboard-container">
       <header className="header">
         <span className="welcome-message">
-          Welcome {name} {variety}!
+          Welcome <span className="user-name">{name}!</span>{" "}
+          <span className="user-role">{variety}</span>
         </span>
         <button className="logout-button" onClick={() => navigate("/")}>
           Logout
