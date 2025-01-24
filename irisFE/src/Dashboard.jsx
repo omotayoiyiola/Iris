@@ -76,7 +76,7 @@ function Dashboard() {
     setYBounds(value);
   };
 
-  console.log("VARRRUUUU", variety);
+  //console.log("VARRRUUUU", variety);
   return (
     <div className="dashboard-container">
       <header className="header">

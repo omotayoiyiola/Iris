@@ -6,7 +6,6 @@ const dotenv = require("dotenv");
 const fs = require("fs");
 const csv = require("csv-parser");
 const path = require("path");
-require("dotenv").config();
 
 dotenv.config();
 
@@ -34,19 +33,26 @@ const users = [
 
 // Routes
 app.get("/", (req, res) => {
-  res.send("Welcome to my backend service!");
+  res.send("Welcome to my backend service247!");
 });
 
 // Auth Route
-app.post("/login", (req, res) => {
-  const { email, password } = req.body;
+app.post("/login", async (req, res) => {
+  try {
+    const { email, password } = req.body;
 
-  // Find user
-  const user = users.find((user) => user.email === email);
-  if (!user) return res.status(400).json({ message: "User not found" });
+    if (!email || !password) {
+      return res
+        .status(400)
+        .json({ message: "Email and password are required" });
+    }
 
-  // Validate password
-  bcrypt.compare(password, user.password, (err, result) => {
+    // Find user
+    const user = users.find((user) => user.email === email);
+    if (!user) return res.status(400).json({ message: "User not found" });
+
+    // Validate password
+    const result = await bcrypt.compare(password, user.password);
     if (!result)
       return res.status(400).json({ message: "Invalid credentials" });
 
@@ -64,37 +70,46 @@ app.post("/login", (req, res) => {
       name: user.name,
       role: user.role,
     });
-  });
+  } catch (err) {
+    console.error("Error during login:", err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
 });
 
 // Route to fetch data based on variety
 app.get("/getData", (req, res) => {
   const { variety } = req.query; // Query param to specify the variety
-  const results = [];
 
   if (!variety) {
     return res.status(400).json({ error: "Variety is required" });
   }
 
-  fs.createReadStream(path.join(__dirname, "iris.csv"))
-    .pipe(csv())
-    .on("data", (row) => {
-      if (row.variety === variety) {
-        results.push(row);
-      }
-    })
-    .on("end", () => {
-      if (results.length === 0) {
-        return res
-          .status(404)
-          .json({ error: `No records found for ${variety}` });
-      }
-      res.json(results);
-    })
-    .on("error", (err) => {
-      console.error("Error reading CSV:", err);
-      res.status(500).json({ error: "Internal Server Error" });
-    });
+  const results = [];
+
+  try {
+    fs.createReadStream(path.join(__dirname, "iris.csv"))
+      .pipe(csv())
+      .on("data", (row) => {
+        if (row.variety === variety) {
+          results.push(row);
+        }
+      })
+      .on("end", () => {
+        if (results.length === 0) {
+          return res
+            .status(404)
+            .json({ error: `No records found for ${variety}` });
+        }
+        res.json(results);
+      })
+      .on("error", (err) => {
+        console.error("Error reading CSV:", err);
+        res.status(500).json({ error: "Error processing CSV file" });
+      });
+  } catch (err) {
+    console.error("Error during data fetch:", err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
 });
 
 // Protected Route
