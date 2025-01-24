@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   LineChart,
@@ -10,69 +10,61 @@ import {
   Legend,
 } from "recharts";
 import "./Dashboard.css";
-//import { useAuth } from "./authContext";
-
-const csvData = [
-  {
-    sepalLength: 5.1,
-    sepalWidth: 3.5,
-    petalLength: 1.4,
-    petalWidth: 0.2,
-    variety: "Iris-setosa",
-  },
-  {
-    sepalLength: 4.9,
-    sepalWidth: 3,
-    petalLength: 1.4,
-    petalWidth: 0.2,
-    variety: "Iris-setosa",
-  },
-  {
-    sepalLength: 4.7,
-    sepalWidth: 3.2,
-    petalLength: 1.3,
-    petalWidth: 0.2,
-    variety: "Iris-setosa",
-  },
-  {
-    sepalLength: 4.6,
-    sepalWidth: 3.1,
-    petalLength: 1.5,
-    petalWidth: 0.2,
-    variety: "Iris-setosa",
-  },
-  {
-    sepalLength: 5,
-    sepalWidth: 3.6,
-    petalLength: 1.4,
-    petalWidth: 0.2,
-    variety: "Iris-setosa",
-  },
-  {
-    sepalLength: 5.4,
-    sepalWidth: 3.9,
-    petalLength: 1.7,
-    petalWidth: 0.4,
-    variety: "Iris-setosa",
-  },
-  {
-    sepalLength: 4.6,
-    sepalWidth: 3.4,
-    petalLength: 1.4,
-    petalWidth: 0.3,
-    variety: "Iris-setosa",
-  },
-];
+import axios from "axios";
 
 function Dashboard() {
-  //const { authData, logout } = useAuth();
   const [selectedSeries, setSelectedSeries] = useState({
     sepalWidth: true,
     petalLength: true,
     petalWidth: true,
   });
-  const [yBounds, setYBounds] = useState([0, 5]); // Default Y-axis bounds
+  const [yBounds, setYBounds] = useState([0, 5]);
+  const [name, setName] = useState("Guest");
+  const [variety, setVariety] = useState("");
+  const [chartData, setChartData] = useState([]);
+
   const navigate = useNavigate();
+
+  // Handle token decryption and data fetch
+  useEffect(() => {
+    // Simulating token retrieval from localStorage
+    const token = localStorage.getItem("authData");
+
+    if (token) {
+      try {
+        const user = JSON.parse(token); // Assuming the token is a plain JSON string
+        setName(user.name); // Using `name` from the token
+        setVariety(user.role); // Using `role` as `variety` in your case
+      } catch (error) {
+        console.error("Error parsing token:", error);
+        navigate("/"); // Redirect to login if token is invalid
+      }
+    } else {
+      navigate("/"); // Redirect to login if no token
+    }
+  }, [navigate]);
+
+  useEffect(() => {
+    if (variety) {
+      axios
+        .get(`http://localhost:3000/getData?variety=${variety}`)
+        .then((response) => {
+          // Normalize the keys to remove the periods (e.g., "sepal.length" -> "sepalLength")
+          const normalizedData = response.data.map((item) => ({
+            sepalLength: parseFloat(item["sepal.length"]),
+            sepalWidth: parseFloat(item["sepal.width"]),
+            petalLength: parseFloat(item["petal.length"]),
+            petalWidth: parseFloat(item["petal.width"]),
+            variety: item.variety,
+          }));
+
+          setChartData(normalizedData);
+        })
+        .catch((err) => console.error("Error fetching data:", err));
+    }
+  }, [variety]);
+
+  console.log("DCDCDCDC", chartData);
 
   const handleCheckboxChange = (e) => {
     const { name, checked } = e.target;
@@ -84,10 +76,13 @@ function Dashboard() {
     setYBounds(value);
   };
 
+  console.log("VARRRUUUU", variety);
   return (
     <div className="dashboard-container">
       <header className="header">
-        <span className="welcome-message">Welcome guests!</span>
+        <span className="welcome-message">
+          Welcome {name} {variety}!
+        </span>
         <button className="logout-button" onClick={() => navigate("/")}>
           Logout
         </button>
@@ -141,7 +136,7 @@ function Dashboard() {
                 Y-Axis Bounds: {yBounds[0]} - {yBounds[1]}
               </div>
             </div>
-            <LineChart width={600} height={300} data={csvData}>
+            <LineChart width={600} height={300} data={chartData}>
               <CartesianGrid stroke="#ccc" />
               <XAxis
                 dataKey="sepalLength"
@@ -168,7 +163,7 @@ function Dashboard() {
           {/* Plot 2 */}
           <div className="chart-container">
             <h2>Plot 2: Petal Length (X-axis)</h2>
-            <LineChart width={600} height={300} data={csvData}>
+            <LineChart width={600} height={300} data={chartData}>
               <CartesianGrid stroke="#ccc" />
               <XAxis
                 dataKey="petalLength"

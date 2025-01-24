@@ -38,9 +38,14 @@ function App() {
       // Assuming the response contains token and role
       if (response.data.token) {
         // Use the login function from AuthContext to store auth data
-        login(formData.username, response.data.token, response.data.role);
-
+        login(
+          response.data.email,
+          response.data.token,
+          response.data.name,
+          response.data.role
+        );
         // Navigate to the dashboard
+        alert("Login successful!");
         navigate("/dashboard");
       } else {
         setError("Invalid username or password.");

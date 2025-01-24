@@ -3,6 +3,9 @@ const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const cors = require("cors");
 const dotenv = require("dotenv");
+const fs = require("fs");
+const csv = require("csv-parser");
+const path = require("path");
 require("dotenv").config();
 
 dotenv.config();
@@ -19,13 +22,13 @@ const users = [
     name: "John",
     email: "user1@example.com",
     password: "$2a$10$9KSbXrKsnaqYrw5xt1Re.euRnMyHH0m8rJUozGA0GqGxv7Jphg22u",
-    role: "Setosa",
+    role: "Iris-setosa",
   }, // password: "password123"
   {
     name: "Smart",
     email: "user2@example.com",
     password: "$2a$10$9KSbXrKsnaqYrw5xt1Re.euRnMyHH0m8rJUozGA0GqGxv7Jphg22u",
-    role: "Virginica",
+    role: "Iris-virginica",
   }, // password: "password123"
 ];
 
@@ -49,12 +52,49 @@ app.post("/login", (req, res) => {
 
     // Create JWT token
     const token = jwt.sign(
-      { email: user.email, role: user.role },
+      { email: user.email, name: user.name, role: user.role },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
-    res.json({ token });
+
+    // Send token and user data in response
+    res.json({
+      token,
+      email: user.email,
+      name: user.name,
+      role: user.role,
+    });
   });
+});
+
+// Route to fetch data based on variety
+app.get("/getData", (req, res) => {
+  const { variety } = req.query; // Query param to specify the variety
+  const results = [];
+
+  if (!variety) {
+    return res.status(400).json({ error: "Variety is required" });
+  }
+
+  fs.createReadStream(path.join(__dirname, "iris.csv"))
+    .pipe(csv())
+    .on("data", (row) => {
+      if (row.variety === variety) {
+        results.push(row);
+      }
+    })
+    .on("end", () => {
+      if (results.length === 0) {
+        return res
+          .status(404)
+          .json({ error: `No records found for ${variety}` });
+      }
+      res.json(results);
+    })
+    .on("error", (err) => {
+      console.error("Error reading CSV:", err);
+      res.status(500).json({ error: "Internal Server Error" });
+    });
 });
 
 // Protected Route

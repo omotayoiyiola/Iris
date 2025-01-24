@@ -13,9 +13,12 @@ export const useAuth = () => {
 export const AuthProvider = ({ children }) => {
   const [authData, setAuthData] = useState(null);
 
-  const login = (email, token, role) => {
-    setAuthData({ email, token, role });
-    localStorage.setItem("authData", JSON.stringify({ email, token, role }));
+  const login = (email, token, name, role) => {
+    setAuthData({ email, token, name, role });
+    localStorage.setItem(
+      "authData",
+      JSON.stringify({ email, token, name, role })
+    );
   };
 
   const logout = () => {
