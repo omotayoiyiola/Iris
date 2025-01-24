@@ -10,6 +10,7 @@ import {
   Legend,
 } from "recharts";
 import "./Dashboard.css";
+//import { useAuth } from "./authContext";
 
 const csvData = [
   {
@@ -64,6 +65,7 @@ const csvData = [
 ];
 
 function Dashboard() {
+  //const { authData, logout } = useAuth();
   const [selectedSeries, setSelectedSeries] = useState({
     sepalWidth: true,
     petalLength: true,

@@ -2,8 +2,10 @@ import { useState } from "react";
 import "./App.css";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { useAuth } from "./authContext";
 
 function App() {
+  const { login } = useAuth(); // Use the login function from AuthContext
   const [formData, setFormData] = useState({ username: "", password: "" });
   const [error, setError] = useState("");
   const navigate = useNavigate();
@@ -28,22 +30,23 @@ function App() {
     }
 
     try {
-      console.log(formData);
       const response = await axios.post("http://localhost:3000/login", {
         email: formData.username,
         password: formData.password,
       });
 
-      // Assuming the response contains the token and user data
+      // Assuming the response contains token and role
       if (response.data.token) {
-        // Store the token in localStorage or cookies
-        localStorage.setItem("token", response.data.token);
+        // Use the login function from AuthContext to store auth data
+        login(formData.username, response.data.token, response.data.role);
+
+        // Navigate to the dashboard
         navigate("/dashboard");
       } else {
         setError("Invalid username or password.");
       }
     } catch (error) {
-      setError("Invalid username or password. Please try again. ");
+      setError("Invalid username or password. Please try again." + error);
     }
   };
 
